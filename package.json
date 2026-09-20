@@ -1,0 +1,18 @@
+{
+  "name": "herdr-telegram-notify",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Send-only private Telegram notifications for Herdr agent status changes",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test notify.test.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nephilus/herdr-telegram-notify.git"
+  },
+  "license": "Apache-2.0"
+}

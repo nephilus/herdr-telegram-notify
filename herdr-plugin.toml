@@ -1,0 +1,22 @@
+id = "nephilus.telegram-notify"
+name = "Telegram Notifications"
+version = "0.1.0"
+min_herdr_version = "0.9.1"
+description = "Send-only private Telegram notifications for done and blocked agents across Herdr sessions."
+platforms = ["linux"]
+
+[[events]]
+on = "pane.agent_status_changed"
+command = ["node", "notify.mjs", "event"]
+
+[[actions]]
+id = "status"
+title = "Telegram notification status (local only)"
+contexts = ["global"]
+command = ["node", "notify.mjs", "status"]
+
+[[actions]]
+id = "test"
+title = "Send a Telegram test notification"
+contexts = ["global"]
+command = ["node", "notify.mjs", "test"]
