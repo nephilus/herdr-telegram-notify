@@ -26,12 +26,12 @@ Other agents have different integrations. Explicit lifecycle reporting is prefer
 
 ## Context lookup and fidelity
 
-The plugin may query Herdr independently for workspace, pane, and tab context. It trusts event context only when the workspace ID and focused pane ID match the records it is using. It does not infer a pane name from an agent or tab name: pane naming prefers the actual pane label, then event or pane title, then the terminal title, and finally `(unnamed)`.
+The plugin queries Herdr independently for workspace and pane context. It trusts event context only when the workspace ID and focused pane ID match the records it is using. It does not infer a pane name from an agent or tab name: pane naming prefers the actual pane label, then event or pane title, then the terminal title, and finally `(unnamed)`. It does not query tabs.
 
 The message can include:
 
-- the workspace label and number, when known;
-- a tab label in the toast-style body only when the workspace has more than one tab; the separate tab metadata row can appear for a single tab;
+- a state icon and agent/status title;
+- the workspace name and stable ID;
 - the pane name and identifiers;
 - the configured source label.
 
@@ -41,7 +41,7 @@ This is intentionally not exact toast replication. The event contains state and 
 
 Each context query is independent. A failed query degrades the names or toast context but does not discard an otherwise eligible alert. The message then includes:
 
-> Context: incomplete; names or toast context may be unavailable.
+> Context: incomplete; names may be unavailable.
 
 ## Delivery behavior
 

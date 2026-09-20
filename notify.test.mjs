@@ -111,29 +111,27 @@ test('Herdr status notifications preserve privacy and diagnose delivery failures
     await save(config);
     await saveFixture(baseFixture);
 
-    await t.test('done and blocked use enriched title/body format and retain no invocation data', async () => {
+    await t.test('compact alerts retain identity without redundant context or footer', async () => {
       await event();
       await event('blocked');
       assert.equal(requests.length, 2);
       assert.equal(bodyOf(requests[0]), [
-        'omp finished',
-        'Project · 2 · Notifications',
-        '',
+        '🏁 omp finished',
         'Workspace: Project [w2]',
         'Pane: Telegram notifier [p7]',
-        'Tab: Notifications [t7]',
         'Source: Lab',
-        'Open Herdr for context.',
       ].join('\n'));
-      assert.equal(bodyOf(requests[1]).split('\n')[0], 'omp needs attention');
+      assert.equal(bodyOf(requests[1]).split('\n')[0], '⚠️ omp needs attention');
       await event('done', { display_agent: '', agent: 'codex' });
-      assert.equal(bodyOf(requests.at(-1)).split('\n')[0], 'codex finished');
+      assert.equal(bodyOf(requests.at(-1)).split('\n')[0], '🏁 codex finished');
       await event('done', { display_agent: '', agent: '' });
-      assert.equal(bodyOf(requests.at(-1)).split('\n')[0], 'Agent finished');
+      assert.equal(bodyOf(requests.at(-1)).split('\n')[0], '🏁 Agent finished');
       assert.equal(requests[0].chat_id, config.chatId);
       assert.equal(requests[0].parse_mode, undefined);
       assert.equal(requests[0].reply_markup, undefined);
       assert.doesNotMatch(JSON.stringify(requests), /SECRET|selected_text|agent_session|transcript|worktree/);
+      await run('test', env);
+      assert.equal(requests.at(-1).text, '🧪 Test notification\nSource: Lab');
     });
 
     await t.test('non-notifying statuses and unrelated events do not publish', async () => {
@@ -158,7 +156,7 @@ test('Herdr status notifications preserve privacy and diagnose delivery failures
         await save({ ...config, notifyOnIdle: true });
         await event('idle');
         assert.equal(requests.length, before + 1);
-        assert.match(requests.at(-1).text, /^omp is idle\n/);
+        assert.match(requests.at(-1).text, /^⏸️ omp is idle\n/);
         assert.match(requests.at(-1).text, /Pane: Telegram notifier \[p7\]/);
         await event('working');
         await event('unknown');
@@ -200,7 +198,7 @@ test('Herdr status notifications preserve privacy and diagnose delivery failures
       assert.match(bodyOf(requests.at(-1)), /Pane: \(unnamed\) \[p7\]/);
     });
 
-    await t.test('event pane, workspace position, and single/multi-tab context remain distinct', async () => {
+    await t.test('event pane identity is not replaced by the focused pane or tab', async () => {
       await saveFixture({
         workspaces: [{ workspace_id: 'w2', label: 'Project', number: 7, tab_count: 2 }],
         panes: [
@@ -211,21 +209,9 @@ test('Herdr status notifications preserve privacy and diagnose delivery failures
       });
       await event('done', { pane_id: 'p8' }, { focused_pane_id: 'p7', tab_label: 'Focused tab', tab_id: 't7' });
       const text = bodyOf(requests.at(-1));
-      assert.match(text, /^omp finished\nProject · 7 · Event tab\n/m);
       assert.match(text, /Workspace: Project \[w2\]/);
       assert.match(text, /Pane: Event pane \[p8\]/);
-      assert.match(text, /Tab: Event tab \[t8\]/);
-      assert.doesNotMatch(text, /Focused pane|Focused tab/);
-
-      await saveFixture({
-        workspaces: [{ workspace_id: 'w2', label: 'Project', number: 7, tab_count: 1 }],
-        panes: [{ pane_id: 'p8', workspace_id: 'w2', tab_id: 't8', label: 'Event pane' }],
-        tabs: [{ tab_id: 't8', workspace_id: 'w2', label: 'Only tab' }],
-      });
-      await event('done', { pane_id: 'p8' });
-      const singleTab = bodyOf(requests.at(-1));
-      assert.match(singleTab, /^omp finished\nProject · 7\n/m);
-      assert.doesNotMatch(singleTab, /Project · 7 · Only tab/m);
+      assert.doesNotMatch(text, /Focused pane|Focused tab|Event tab|Tab:/);
     });
 
     await t.test('matching event context is a safe fallback when metadata CLI fails', async () => {
@@ -235,14 +221,13 @@ test('Herdr status notifications preserve privacy and diagnose delivery failures
       });
       const text = bodyOf(requests.at(-1));
       assert.match(text, /Workspace: Context project \[w2\]/);
-      assert.match(text, /Tab: Context tab \[context-tab\]/);
       assert.match(text, /Context: incomplete/);
     });
 
     await t.test('missing metadata still publishes with an explicit incomplete-context diagnostic', async () => {
       await event('done', {}, { workspace_label: 'Wrong workspace', focused_pane_id: 'other-pane' });
       const text = bodyOf(requests.at(-1));
-      assert.match(text, /Context: incomplete; names or toast context may be unavailable\./);
+      assert.match(text, /Context: incomplete/);
       assert.match(text, /Workspace: .+ \[w2\]/);
       assert.doesNotMatch(text, /Wrong workspace/);
       assert.match(text, /Pane: Event pane \[p7\]/);
@@ -266,7 +251,7 @@ test('Herdr status notifications preserve privacy and diagnose delivery failures
       assert.match(text, /… \[truncated\]/);
       assert.match(text, /workspace-long/);
       assert.match(text, /pane-long/);
-      assert.match(text, /tab-long/);
+      assert.doesNotMatch(text, /tab-long/);
     });
 
     await t.test('API rejection is redacted and does not suppress a subsequent event', async () => {

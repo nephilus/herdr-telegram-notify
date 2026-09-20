@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.3
+
+- Compact alerts to status, workspace, pane, and source; retain names and stable workspace/pane IDs.
+- Add 🏁 / ⚠️ / ⏸️ state icons and 🧪 for the manual test.
+- Remove the navigation footer, duplicated toast-context line, separate tab row, and unnecessary tab metadata query.
+- Preserve incomplete-context warnings and the `notifyOnIdle` flag.
+
 ## 0.1.2
 
 - Add optional boolean `notifyOnIdle` (default `false`) to forward idle events, including seen-pane completions, as “agent is idle.”

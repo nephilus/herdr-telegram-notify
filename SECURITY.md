@@ -13,8 +13,8 @@ The plugin currently targets Linux, Node.js 22+, and Herdr 0.9.1+. Herdr registr
 When enabled, the plugin sends a status message to the configured `chatId` through the Telegram Bot API. Depending on what Herdr can resolve, the message can disclose:
 
 - done or blocked state, and idle state when `notifyOnIdle` is enabled;
-- workspace, tab, and pane display names;
-- workspace, tab, and pane identifiers;
+- workspace and pane display names;
+- workspace and pane identifiers;
 - the configured source label; and
 - an explicit incomplete-context note when lookup failed.
 

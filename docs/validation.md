@@ -7,6 +7,15 @@ The live transport results below were obtained with `0.1.0`. Release `0.1.1`
 changes only naming, package-version metadata, and documentation; the sender
 and its tests are unchanged. It does not claim another live Telegram trial.
 
+## 0.1.3 compact-format validation
+
+All 16 behavioral subtests passed with the updated compact-format contract.
+An additional smoke check ran the real CLI entrypoint for done, blocked, idle,
+and manual test through a local HTTP receiver. State alerts were four lines
+with the expected icons and both workspace/pane IDs; the manual test was two
+lines. None included the navigation footer or a tab row. No external Telegram
+test messages were sent, and temporary receiver/files were removed.
+
 ## 0.1.2 idle-option validation
 
 All 16 behavioral subtests passed (17 reported tests including the parent).

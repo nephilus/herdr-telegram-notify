@@ -117,38 +117,28 @@ async function notification(data, env) {
   try { context = JSON.parse(env.HERDR_PLUGIN_CONTEXT_JSON ?? '{}'); } catch {}
   if (context?.workspace_id !== workspaceId || context?.focused_pane_id !== paneId) context = {};
 
-  const [workspaces, panes, tabs] = await Promise.all([
+  const [workspaces, panes] = await Promise.all([
     query(env, ['workspace', 'list'], 'workspaces'),
     query(env, ['pane', 'list', '--workspace', workspaceId], 'panes'),
-    query(env, ['tab', 'list', '--workspace', workspaceId], 'tabs'),
   ]);
   const workspace = workspaces?.find(item => item?.workspace_id === workspaceId);
   const pane = panes?.find(item => item?.pane_id === paneId && item?.workspace_id === workspaceId);
-  const candidateTab = pane?.tab_id ?? context?.tab_id;
-  const tabId = typeof candidateTab === 'string' && /^[A-Za-z0-9:_-]{1,80}$/.test(candidateTab)
-    ? candidateTab : undefined;
-  const tab = tabs?.find(item => item?.tab_id === tabId && item?.workspace_id === workspaceId);
   const workspaceName = name(context?.workspace_label) || name(workspace?.label, '(unknown)');
-  const tabName = name(context?.tab_id === tabId ? context?.tab_label : undefined) || name(tab?.label);
   const paneName = name(pane?.label) || name(data.title) || name(pane?.title)
     || name(pane?.terminal_title_stripped, '(unnamed)');
   const agentName = name(data.display_agent) || name(data.agent, 'Agent');
   const stateText = data.agent_status === 'done' ? 'finished'
     : data.agent_status === 'idle' ? 'is idle' : 'needs attention';
-  const title = `${agentName} ${stateText}`;
-  let body = workspaceName;
-  const positionKnown = Number.isSafeInteger(workspace?.number) && workspace.number > 0;
-  if (positionKnown) body += ` · ${workspace.number}`;
-  if (workspace?.tab_count > 1 && tabName) body += ` · ${tabName}`;
+  const icon = data.agent_status === 'done' ? '🏁' : data.agent_status === 'idle' ? '⏸️' : '⚠️';
+  const title = `${icon} ${agentName} ${stateText}`;
 
   const lines = [
-    title, body, '',
+    title,
     `Workspace: ${workspaceName} [${workspaceId}]`,
     `Pane: ${paneName} [${paneId}]`,
   ];
-  if (tabId) lines.push(`Tab: ${tabName || '(unnamed)'} [${tabId}]`);
-  if (!workspace || !pane || !tab || !positionKnown || workspaceName === '(unknown)' || paneName === '(unnamed)') {
-    lines.push('Context: incomplete; names or toast context may be unavailable.');
+  if (!workspace || !pane || workspaceName === '(unknown)' || paneName === '(unnamed)') {
+    lines.push('Context: incomplete; names may be unavailable.');
   }
   return lines.join('\n');
 }
@@ -174,8 +164,8 @@ export async function run(action, env = process.env) {
   if (action === 'event' && data.agent_status === 'idle' && !config.notifyOnIdle) {
     return 'Ignored idle status (notifyOnIdle is off)';
   }
-  const text = action === 'event' ? await notification(data, env) : 'Herdr: Test notification';
-  await publish(config, `${text}\nSource: ${config.label}\nOpen Herdr for context.`);
+  const text = action === 'event' ? await notification(data, env) : '🧪 Test notification';
+  await publish(config, `${text}\nSource: ${config.label}`);
   return 'Telegram accepted notification (phone delivery not confirmed)';
 }
 
