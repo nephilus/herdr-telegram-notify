@@ -42,12 +42,24 @@ correct lifecycle events. Completion alerts deliberately retain Herdr's seen/uns
 After the three acceptances, the disposable config was disabled and its credentials removed.
 No bot token, destination ID, private project name, or raw operational log is included here.
 
+## Published package checks
+
+Release `v0.1.0` points to `0dad8946d78e717649795f387cbd5b6631f6491b`.
+[GitHub CI](https://github.com/nephilus/herdr-telegram-notify/actions/runs/35525497058)
+passed both Node 22 and Node 24 jobs; the tag workflow also passed.
+
+After unlinking the local development copy in the isolated profile,
+`herdr plugin install nephilus/herdr-telegram-notify --ref v0.1.0 --yes`
+installed the public tag successfully. The installed `status` action completed
+with exit 0 and correctly reported the disabled test configuration without
+sending another message. The disposable server and files were then removed.
+
 ## Limits before marketplace promotion
 
 - Confirm actual phone rendering, notification permissions, mute settings, and lock-screen disclosure.
 - Exercise real OMP question, approval, continuation, retry, cancellation, and normal completion workflows.
 - Observe concurrent agents, multiple Herdr sessions, disconnect/reconnect, and prolonged operation.
-- Verify release installation/update from a clean user profile; keep the supported platform list honest.
+- Exercise upgrades from an older GitHub-managed release; keep the supported platform list honest.
 - Do not broaden idle handling without testing startup/focus/acknowledgement false positives.
 
 The public repository is intentionally not tagged `herdr-plugin` yet. See [marketplace status](marketplace.md).
