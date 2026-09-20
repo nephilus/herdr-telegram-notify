@@ -4,14 +4,14 @@ A send-only [Herdr](https://herdr.dev/) plugin that sends a short Telegram messa
 
 An independent community plugin, separate from the [Agent Telegram Notify example](https://github.com/ogulcancelik/herdr-plugin-examples/tree/main/agent-telegram-notify). This package provides outbound alerts only: no callback watcher, remote commands, or approval buttons. It is not an official Herdr plugin.
 
-Version `0.1.1` is experimental. It is not a stable or fully certified integration.
+Version `0.1.2` is experimental. It is not a stable or fully certified integration.
 Validation covered the real Herdr hook and three accepted Telegram API sends. Phone display and long-running reliability are not certified; see [validation evidence](docs/validation.md).
 
-**Completion follows Herdr’s attention state:** an unseen completion can emit `done`; an already-seen pane can emit `idle` instead and will not alert. The plugin does not reinterpret every idle event as completion.
+**Want alerts while viewing the agent's tab?** Set `"notifyOnIdle": true` in your private JSON config. Herdr can report seen-pane completion as `idle` rather than `done`. This option forwards those events as “agent is idle,” including other idle events such as startup or acknowledgement of a finished pane. It defaults to `false`.
 
 ## What it does
 
-- Sends notifications for `done` and `blocked` agent states.
+- Sends notifications for `done` and `blocked`, plus `idle` when `notifyOnIdle` is enabled.
 - Includes available workspace, pane, and (when useful) tab names and identifiers.
 - Sends an explicit test message only when you invoke the `test` action.
 - Reads configuration from Herdr’s per-plugin config directory, outside this checkout.
@@ -48,7 +48,7 @@ Herdr’s plugin commands are user-wide. A linked or installed plugin is availab
 Install the tagged release from GitHub and review Herdr’s interactive preview before accepting it:
 
 ```sh
-herdr plugin install nephilus/herdr-telegram-notify --ref v0.1.1
+herdr plugin install nephilus/herdr-telegram-notify --ref v0.1.2
 ```
 
 The plugin runs as ordinary user code. Read the manifest and source before accepting an install from any plugin author; see [Herdr’s plugin security guidance](https://herdr.dev/docs/plugins/#trust-and-security).
@@ -73,11 +73,19 @@ Start with the disabled shape below while gathering your values. Do not put a re
   "enabled": false,
   "botToken": "",
   "chatId": "",
-  "label": "My Herdr"
+  "label": "My Herdr",
+  "notifyOnIdle": false
 }
 ```
 
 Then set `enabled` to `true`, use the token issued by BotFather, enter your positive private chat ID, and keep a short descriptive `label` (at most 100 characters). The file must remain owner-only (`0600`), and its directory must remain owner-only (`0700`). Unknown keys are rejected.
+
+`notifyOnIdle` is an optional JSON boolean, not the string `"true"`. Set it to
+`true` to receive idle events regardless of whether you are viewing the pane.
+Set it to `false` (or omit it) to send only `done` and `blocked`. Changes apply
+to the next event without restarting Herdr. The master `enabled` flag still
+turns all sends off. Enabling idle alerts can increase message volume; no
+additional completion tracking or deduplication is introduced.
 
 `label` appears as `Source:` in each message. Set a distinct label on each host
 if several installations send to the same chat. It applies to every Herdr
@@ -157,7 +165,7 @@ A disabled or missing config causes the plugin to skip metadata lookup and netwo
 There is no separate update command for a GitHub-managed plugin. Re-run the same install command with the desired release ref to refresh it:
 
 ```sh
-herdr plugin install nephilus/herdr-telegram-notify --ref v0.1.1
+herdr plugin install nephilus/herdr-telegram-notify --ref v0.1.2
 ```
 
 To remove the GitHub-managed installation, unregister it and remove its managed checkout with:
@@ -176,7 +184,7 @@ See [reliability details](docs/reliability.md) and the [security model](SECURITY
 
 ## Troubleshooting
 
-- No completion alert: check whether Herdr reported `idle` rather than `done`; seen-pane completions do not notify.
+- No completion alert: if Herdr reported `idle`, enable `notifyOnIdle` to forward it. The plugin cannot send a state event that Herdr never emits.
 - No names: inspect the incomplete-context note. The event pane may have closed or a one-second Herdr query may have timed out.
 - Configuration error: check ownership, `0600` file mode, supported keys, and a positive **string** chat ID. Groups are not supported.
 - `chat_not_found`: open your bot, press Start, and verify the private chat ID.

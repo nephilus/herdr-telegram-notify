@@ -29,8 +29,9 @@ async function configuration(directory = process.env.HERDR_PLUGIN_CONFIG_DIR) {
     }
     const config = JSON.parse(await file.readFile('utf8'));
     if (!config || typeof config !== 'object' || Array.isArray(config) ||
-        Object.keys(config).some(key => !['enabled', 'botToken', 'chatId', 'label'].includes(key)) ||
-        typeof config.enabled !== 'boolean') throw new Error('invalid config');
+        Object.keys(config).some(key => !['enabled', 'botToken', 'chatId', 'label', 'notifyOnIdle'].includes(key)) ||
+        typeof config.enabled !== 'boolean' ||
+        (Object.hasOwn(config, 'notifyOnIdle') && typeof config.notifyOnIdle !== 'boolean')) throw new Error('invalid config');
     if (!config.enabled) return null;
     if (typeof config.botToken !== 'string' || !/^\d+:[A-Za-z0-9_-]+$/.test(config.botToken) ||
         typeof config.chatId !== 'string' || !/^[1-9]\d*$/.test(config.chatId) ||
@@ -40,7 +41,7 @@ async function configuration(directory = process.env.HERDR_PLUGIN_CONFIG_DIR) {
   } catch (error) {
     if (error.code === 'ENOENT') return null;
     // Never propagate JSON, filesystem, or transport diagnostics containing secrets.
-    throw new Error('Cannot load Telegram config: require owner-only JSON with enabled, botToken, positive private chatId, and label');
+    throw new Error('Cannot load Telegram config: require owner-only JSON with enabled, botToken, positive private chatId, label, and optional boolean notifyOnIdle');
   } finally {
     await file?.close();
   }
@@ -132,7 +133,9 @@ async function notification(data, env) {
   const paneName = name(pane?.label) || name(data.title) || name(pane?.title)
     || name(pane?.terminal_title_stripped, '(unnamed)');
   const agentName = name(data.display_agent) || name(data.agent, 'Agent');
-  const title = `${agentName} ${data.agent_status === 'done' ? 'finished' : 'needs attention'}`;
+  const stateText = data.agent_status === 'done' ? 'finished'
+    : data.agent_status === 'idle' ? 'is idle' : 'needs attention';
+  const title = `${agentName} ${stateText}`;
   let body = workspaceName;
   const positionKnown = Number.isSafeInteger(workspace?.number) && workspace.number > 0;
   if (positionKnown) body += ` · ${workspace.number}`;
@@ -161,13 +164,16 @@ export async function run(action, env = process.env) {
     data = event?.data;
     // Herdr already emits transitions. Do not suppress legitimate rapid changes
     // with a cooldown or create a second cross-process state/locking system.
-    if (!['done', 'blocked'].includes(data?.agent_status)) return 'Ignored non-notifying status';
+    if (!['done', 'blocked', 'idle'].includes(data?.agent_status)) return 'Ignored non-notifying status';
     identifier(data.pane_id);
     identifier(data.workspace_id);
   }
   const config = await configuration(env.HERDR_PLUGIN_CONFIG_DIR);
   if (!config) return 'Telegram notifications disabled or not configured';
-  if (action === 'status') return 'Telegram notifications enabled (send-only; private chat; done/blocked; all Herdr sessions)';
+  if (action === 'status') return `Telegram notifications enabled (send-only; private chat; done/blocked${config.notifyOnIdle ? '/idle' : ''}; all Herdr sessions)`;
+  if (action === 'event' && data.agent_status === 'idle' && !config.notifyOnIdle) {
+    return 'Ignored idle status (notifyOnIdle is off)';
+  }
   const text = action === 'event' ? await notification(data, env) : 'Herdr: Test notification';
   await publish(config, `${text}\nSource: ${config.label}\nOpen Herdr for context.`);
   return 'Telegram accepted notification (phone delivery not confirmed)';

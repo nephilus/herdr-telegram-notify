@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.2
+
+- Add optional boolean `notifyOnIdle` (default `false`) to forward idle events, including seen-pane completions, as “agent is idle.”
+- Changing the flag takes effect on the next event without a restart. `enabled: false` still disables every send.
+- Reject non-boolean flag values and show whether idle alerts are enabled in the local status action.
+- Document possible startup/acknowledgement alerts; no second state tracker or deduplication is added.
+
 ## 0.1.1
 
 - Rename the display name to `Telegram Notify (Send-only)` and clarify the independent community-plugin identity.

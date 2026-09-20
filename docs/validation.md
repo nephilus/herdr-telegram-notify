@@ -7,6 +7,20 @@ The live transport results below were obtained with `0.1.0`. Release `0.1.1`
 changes only naming, package-version metadata, and documentation; the sender
 and its tests are unchanged. It does not claim another live Telegram trial.
 
+## 0.1.2 idle-option validation
+
+All 16 behavioral subtests passed (17 reported tests including the parent).
+The new regression failed before implementation and passes afterward. It
+covers false → true → false toggling, accurate idle wording, retained
+done/blocked alerts, ignored working/unknown states, non-boolean rejection,
+and the master disabled flag preventing metadata lookup and publication.
+
+A separate smoke check launched the real `node notify.mjs event` entrypoint
+three times with false → true → false. Only the middle invocation sent a
+request to a local HTTP receiver, with an “omp is idle” title. It queried the
+real Herdr metadata CLI but redirected transport locally; no extra Telegram
+test message was sent. Temporary files and the receiver were removed.
+
 ## Automated checks
 
 `node --test notify.test.mjs` passed all 15 behavioral subtests (16 reported tests including the parent).

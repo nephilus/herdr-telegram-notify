@@ -149,6 +149,38 @@ test('Herdr status notifications preserve privacy and diagnose delivery failures
       });
     });
 
+    await t.test('notifyOnIdle can be enabled and disabled without changing other status alerts', async () => {
+      const before = requests.length;
+      try {
+        await save({ ...config, notifyOnIdle: false });
+        await event('idle');
+        assert.equal(requests.length, before);
+        await save({ ...config, notifyOnIdle: true });
+        await event('idle');
+        assert.equal(requests.length, before + 1);
+        assert.match(requests.at(-1).text, /^omp is idle\n/);
+        assert.match(requests.at(-1).text, /Pane: Telegram notifier \[p7\]/);
+        await event('working');
+        await event('unknown');
+        assert.equal(requests.length, before + 1);
+        await event('done');
+        await event('blocked');
+        assert.equal(requests.length, before + 3);
+        await save({ ...config, notifyOnIdle: false });
+        await event('idle');
+        assert.equal(requests.length, before + 3);
+        await save({ ...config, notifyOnIdle: 'true' });
+        await assert.rejects(event('idle'), /notifyOnIdle/);
+        const metadataCalls = await callCount();
+        await save({ enabled: false, notifyOnIdle: true });
+        await event('idle');
+        assert.equal(await callCount(), metadataCalls);
+        assert.equal(requests.length, before + 3);
+      } finally {
+        await save(config);
+      }
+    });
+
     await t.test('pane identity and explicit label precedence never substitute the tab name', async () => {
       await saveFixture({ ...baseFixture, panes: [{ ...baseFixture.panes[0], label: 'Explicit pane', title: 'Pane title', terminal_title_stripped: 'Terminal title' }] });
       await event('done', { title: 'Event title' });

@@ -1,12 +1,12 @@
 # Reliability and event fidelity
 
-Herdr Telegram Notify is a notification bridge, not a second agent state machine. It consumes Herdr’s `pane.agent_status_changed` event and sends one short, best-effort message for `done` or `blocked`.
+Herdr Telegram Notify is a notification bridge, not a second agent state machine. It consumes Herdr’s `pane.agent_status_changed` event and sends one short, best-effort message for `done` or `blocked`, and optionally `idle`.
 
 ### The seen-pane boundary
 
 Herdr 0.9.1 maps internal `Idle` to public `done` only when the pane is **unseen**. If it is already seen, the public state is `idle`. This was reproduced against the real server: the selected validation pane completed as `idle`; the same pane completed as `done` after focus moved to another workspace.
 
-The plugin deliberately sends only `done` and `blocked`. It does not turn startup idle, acknowledgement of a finished pane, or every focus change into a completion alert, and it does not persist another state machine to guess transitions. Consequently it does **not** guarantee completion alerts for every focused/seen pane or every detached-client situation.
+By default, the plugin sends only `done` and `blocked`. Set `"notifyOnIdle": true` to forward `idle` too, including seen-pane completions. These messages say “agent is idle,” not “finished”: idle can also arise on startup or when a finished pane is viewed. There is no persisted state machine to distinguish those causes, so this option can produce extra alerts. Missing or `false` preserves the default behavior. It does not override the master `enabled` flag or create events Herdr has not emitted.
 
 Source: [`pane_agent_status`](https://github.com/herdrdev/herdr/blob/065ef9d6a531c49fb8bee7e818ef837065b21ee9/src/app/api_helpers.rs). See [validation evidence](validation.md).
 
@@ -39,7 +39,7 @@ Names are sanitized plain text, with control and bidirectional-format characters
 
 This is intentionally not exact toast replication. The event contains state and identifiers, while Herdr’s toast may include presentation details that are not present in the event. The plugin does not read terminal output, transcripts, selected text, tool arguments, or agent responses.
 
-Each context query is independent. A failed query degrades the names or toast context but does not discard a `done` or `blocked` alert. The message then includes:
+Each context query is independent. A failed query degrades the names or toast context but does not discard an otherwise eligible alert. The message then includes:
 
 > Context: incomplete; names or toast context may be unavailable.
 
