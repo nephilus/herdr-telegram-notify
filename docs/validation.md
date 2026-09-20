@@ -1,7 +1,11 @@
-# Validation for 0.1.0
+# Validation evidence
 
 Validated on Linux/WSL2 with Herdr 0.9.1 and Node.js 22.23.2.
 This is an experimental release, not a claim of lossless notification delivery.
+
+The live transport results below were obtained with `0.1.0`. Release `0.1.1`
+changes only naming, package-version metadata, and documentation; the sender
+and its tests are unchanged. It does not claim another live Telegram trial.
 
 ## Automated checks
 

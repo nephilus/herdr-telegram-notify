@@ -1,8 +1,10 @@
-# Herdr Telegram Notify
+# Herdr Telegram Notify (Send-only)
 
 A send-only [Herdr](https://herdr.dev/) plugin that sends a short Telegram message when an agent is done or needs attention. It is intended for one user’s private bot chat and all Herdr sessions owned by that user on the same host.
 
-Version `0.1.0` is experimental. It is not a stable or fully certified integration.
+An independent community plugin, separate from the [Agent Telegram Notify example](https://github.com/ogulcancelik/herdr-plugin-examples/tree/main/agent-telegram-notify). This package provides outbound alerts only: no callback watcher, remote commands, or approval buttons. It is not an official Herdr plugin.
+
+Version `0.1.1` is experimental. It is not a stable or fully certified integration.
 Validation covered the real Herdr hook and three accepted Telegram API sends. Phone display and long-running reliability are not certified; see [validation evidence](docs/validation.md).
 
 **Completion follows Herdr’s attention state:** an unseen completion can emit `done`; an already-seen pane can emit `idle` instead and will not alert. The plugin does not reinterpret every idle event as completion.
@@ -46,7 +48,7 @@ Herdr’s plugin commands are user-wide. A linked or installed plugin is availab
 Install the tagged release from GitHub and review Herdr’s interactive preview before accepting it:
 
 ```sh
-herdr plugin install nephilus/herdr-telegram-notify --ref v0.1.0
+herdr plugin install nephilus/herdr-telegram-notify --ref v0.1.1
 ```
 
 The plugin runs as ordinary user code. Read the manifest and source before accepting an install from any plugin author; see [Herdr’s plugin security guidance](https://herdr.dev/docs/plugins/#trust-and-security).
@@ -76,6 +78,12 @@ Start with the disabled shape below while gathering your values. Do not put a re
 ```
 
 Then set `enabled` to `true`, use the token issued by BotFather, enter your positive private chat ID, and keep a short descriptive `label` (at most 100 characters). The file must remain owner-only (`0600`), and its directory must remain owner-only (`0700`). Unknown keys are rejected.
+
+`label` appears as `Source:` in each message. Set a distinct label on each host
+if several installations send to the same chat. It applies to every Herdr
+session on that installation; it is not derived automatically from the hostname.
+Private labels can identify your machines without hardcoding those names in
+the public plugin.
 
 ### Create a private bot and find your chat ID
 
@@ -149,7 +157,7 @@ A disabled or missing config causes the plugin to skip metadata lookup and netwo
 There is no separate update command for a GitHub-managed plugin. Re-run the same install command with the desired release ref to refresh it:
 
 ```sh
-herdr plugin install nephilus/herdr-telegram-notify --ref v0.1.0
+herdr plugin install nephilus/herdr-telegram-notify --ref v0.1.1
 ```
 
 To remove the GitHub-managed installation, unregister it and remove its managed checkout with:

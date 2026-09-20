@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.1
+
+- Rename the display name to `Telegram Notify (Send-only)` and clarify the independent community-plugin identity.
+- Keep the author-scoped ID `nephilus.telegram-notify`, configuration path, and runtime behavior unchanged.
+- No credential migration is needed when upgrading from 0.1.0.
+
 ## 0.1.0
 
 Initial experimental public release under Apache-2.0.

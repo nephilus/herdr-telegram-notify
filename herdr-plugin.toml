@@ -1,6 +1,6 @@
 id = "nephilus.telegram-notify"
-name = "Telegram Notifications"
-version = "0.1.0"
+name = "Telegram Notify (Send-only)"
+version = "0.1.1"
 min_herdr_version = "0.9.1"
 description = "Send-only private Telegram notifications for done and blocked agents across Herdr sessions."
 platforms = ["linux"]
