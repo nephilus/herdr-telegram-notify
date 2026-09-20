@@ -8,7 +8,7 @@ This is an experimental release, not a claim of lossless notification delivery.
 `node --test notify.test.mjs` passed all 15 behavioral subtests (16 reported tests including the parent).
 The suite uses a local HTTP server and a temporary Herdr CLI fixture. It covers:
 
-- done/blocked publication and silence for working, idle, unknown/unrelated events;
+- done/blocked publication and silence for working, idle, and unrelated events;
 - workspace position versus stable ID, correct event-pane selection, explicit pane-label precedence, title fallbacks, and tab cardinality;
 - failed metadata lookup with matching-context fallback and an explicit incomplete-context warning;
 - plain text, bounded names, preserved IDs, and exclusion of selected text, working-directory, session and transcript fields;
