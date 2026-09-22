@@ -1,10 +1,10 @@
 # Herdr Telegram Notify (Send-only)
 
-A send-only [Herdr](https://herdr.dev/) plugin that sends a short Telegram message when an agent is done or needs attention. It is intended for one user’s private bot chat and all Herdr sessions owned by that user on the same host.
+An agent-neutral, send-only [Herdr](https://herdr.dev/) plugin that sends a short Telegram message when Herdr reports an agent as done, blocked, or—optionally—idle. It is intended for one user’s private bot chat and all Herdr sessions owned by that user on the same host.
 
 An independent community plugin, separate from the [Agent Telegram Notify example](https://github.com/ogulcancelik/herdr-plugin-examples/tree/main/agent-telegram-notify). This package provides outbound alerts only: no callback watcher, remote commands, or approval buttons. It is not an official Herdr plugin.
 
-Version `0.1.3` is experimental. It is not a stable or fully certified integration.
+Version `0.1.4` is experimental. It is not a stable or fully certified integration.
 Validation covered the real Herdr hook and three accepted Telegram API sends. Phone display and long-running reliability are not certified; see [validation evidence](docs/validation.md).
 
 **Want alerts while viewing the agent's tab?** Set `"notifyOnIdle": true` in your private JSON config. Herdr can report seen-pane completion as `idle` rather than `done`. This option forwards those events as “agent is idle,” including other idle events such as startup or acknowledgement of a finished pane. It defaults to `false`.
@@ -16,6 +16,10 @@ Validation covered the real Herdr hook and three accepted Telegram API sends. Ph
 - Sends an explicit test message only when you invoke the `test` action.
 - Reads configuration from Herdr’s per-plugin config directory, outside this checkout.
 - Never polls Telegram for updates, accepts inbound commands, displays buttons, or sends agent transcripts.
+
+The notifier has no OMP-specific code or agent allowlist. It handles the same
+generic status event for every agent Herdr detects. Alert accuracy depends on
+Herdr's state source for that agent; see [Install the matching Herdr integration](#install-the-matching-herdr-integration).
 
 A `done` notification means Herdr reported an unseen idle agent, not that the requested work succeeded. A `blocked` notification means Herdr reported a state needing attention.
 
@@ -51,10 +55,59 @@ Herdr’s plugin commands are user-wide. A linked or installed plugin is availab
 Install the tagged release from GitHub and review Herdr’s interactive preview before accepting it:
 
 ```sh
-herdr plugin install nephilus/herdr-telegram-notify --ref v0.1.3
+herdr plugin install nephilus/herdr-telegram-notify --ref v0.1.4
 ```
 
 The plugin runs as ordinary user code. Read the manifest and source before accepting an install from any plugin author; see [Herdr’s plugin security guidance](https://herdr.dev/docs/plugins/#trust-and-security).
+
+## Install the matching Herdr integration
+
+Install this notifier once, then install Herdr's integration for each agent CLI
+you use. The notifier cannot produce a reliable alert unless Herdr first detects
+and publishes that agent's status. Herdr can detect supported terminal UIs
+without integrations, but its official integrations add native lifecycle state,
+session restore, or both.
+
+Use Herdr Settings → Integrations, or install one target at a time:
+
+```sh
+herdr integration install omp       # OMP
+herdr integration install pi        # Pi
+herdr integration install claude    # Claude Code
+herdr integration install codex     # Codex
+herdr integration install copilot   # GitHub Copilot CLI
+herdr integration install opencode  # OpenCode
+```
+
+Other Herdr 0.9.1 targets are `devin`, `droid`, `kimi`, `kilo`, `hermes`,
+`qodercli`, `qwen`, `letta`, `cursor`, `mastracode`, `antigravity-cli`, and
+`grok`. Run `herdr integration install <target>` separately for each one;
+there is no `all` target.
+
+Check what is installed and current:
+
+```sh
+herdr integration status
+```
+
+Integration state authority differs:
+
+- **Native lifecycle state:** Pi, OMP, Kimi Code CLI, OpenCode, Kilo Code CLI,
+  and MastraCode report `working`, `blocked`, and `idle` directly when their
+  integrations are active.
+- **Session identity plus screen state:** Claude Code, Codex, GitHub Copilot
+  CLI, Devin CLI, Droid, Qoder CLI, Qwen Code, Letta Code, Cursor Agent CLI,
+  Hermes Agent, Antigravity CLI, and Grok CLI report session identity; Herdr
+  still derives status from its screen-detection manifests.
+
+Accordingly, installing an integration is recommended for every supported
+agent, but it does not make every agent's status equally authoritative. Amp,
+Kiro CLI, Maki, Muse, Gemini CLI, and Cline have no Herdr 0.9.1 integration
+installer; they can still alert through screen-manifest detection. A custom
+agent can alert by reporting state through `pane report-agent`.
+
+See [Herdr's integration guide](https://herdr.dev/docs/integrations/) for
+agent-specific paths, prerequisites, lifecycle behavior, and uninstall steps.
 
 ## Configure
 
@@ -168,7 +221,7 @@ A disabled or missing config causes the plugin to skip metadata lookup and netwo
 There is no separate update command for a GitHub-managed plugin. Re-run the same install command with the desired release ref to refresh it:
 
 ```sh
-herdr plugin install nephilus/herdr-telegram-notify --ref v0.1.3
+herdr plugin install nephilus/herdr-telegram-notify --ref v0.1.4
 ```
 
 To remove the GitHub-managed installation, unregister it and remove its managed checkout with:

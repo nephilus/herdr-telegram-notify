@@ -10,9 +10,35 @@ By default, the plugin sends only `done` and `blocked`. Set `"notifyOnIdle": tru
 
 Source: [`pane_agent_status`](https://github.com/herdrdev/herdr/blob/065ef9d6a531c49fb8bee7e818ef837065b21ee9/src/app/api_helpers.rs). See [validation evidence](validation.md).
 
-## What counts as done or blocked
+## Agent integrations and status authority
 
-The OMP integration that supplies the state event tracks a root session and ignores nested OMP sessions. Its `agent_end` handling has several guards:
+The notifier is agent-neutral: it subscribes to Herdr's generic
+`pane.agent_status_changed` event and does not filter on the agent label. It
+therefore supports every built-in, manifest-detected, or custom agent for which
+Herdr publishes that event. There is no notifier code change per agent.
+
+Install the matching Herdr integration where available. Pi, OMP, Kimi Code
+CLI, OpenCode, Kilo Code CLI, and MastraCode integrations can directly author
+`working`, `blocked`, and `idle`. Claude Code, Codex, GitHub Copilot CLI, Devin
+CLI, Droid, Qoder CLI, Qwen Code, Letta Code, Cursor Agent CLI, Hermes Agent,
+Antigravity CLI, and Grok CLI integrations report session identity while state
+continues to come from Herdr's screen manifests.
+
+Screen detection is best-effort and agent/version/UI dependent. Explicit
+lifecycle state is stronger, but neither source establishes task success.
+Unrecognized errors or cancellation can still end in idle. Provider safety
+approvals remain in the original interactive flow, not Telegram.
+
+Amp, Kiro CLI, Maki, Muse, Gemini CLI, and Cline have no listed Herdr 0.9.1
+integration installer and rely on screen-manifest detection. Custom agents can
+author the same generic status event through Herdr's `pane report-agent` API.
+
+Source: [Herdr integrations and status-authority model](https://herdr.dev/docs/integrations/).
+
+## OMP-specific behavior
+
+The OMP integration tracks a root session and ignores nested OMP sessions. Its
+`agent_end` handling has several guards:
 
 - An end event is ignored when the root agent is not active. This prevents a duplicate or late end event from falsely publishing idle while an automatic retry is still working.
 - An end event with `willContinue === true` is ignored because a continuation is already scheduled.
@@ -20,9 +46,7 @@ The OMP integration that supplies the state event tracks a root session and igno
 - A recognized retryable provider or transport error holds the pane in working for a **2,500 ms default retry grace**. If no recovery arrives, the state becomes blocked.
 - Explicit `ask` interactions and tool-approval requests set the state to blocked until they resolve.
 
-The source used for this behavior is pinned at [`065ef9d6a531c49fb8bee7e818ef837065b21ee9`](https://github.com/herdrdev/herdr/blob/065ef9d6a531c49fb8bee7e818ef837065b21ee9/src/integration/assets/omp/herdr-agent-state.ts), `src/integration/assets/omp/herdr-agent-state.ts`. These rules explain why a Telegram `done` alert means “Herdr observed a settled state,” not “the requested work was verified successful.”
-
-Other agents have different integrations. Explicit lifecycle reporting is preferable to screen-pattern detection, but this notifier accepts Herdr's result rather than implementing its own classifier. Unrecognized errors or cancellation can still end in idle: `finished` never means successful. Provider safety approvals remain in the original interactive flow, not Telegram.
+The source used for this OMP-specific behavior is pinned at [`065ef9d6a531c49fb8bee7e818ef837065b21ee9`](https://github.com/herdrdev/herdr/blob/065ef9d6a531c49fb8bee7e818ef837065b21ee9/src/integration/assets/omp/herdr-agent-state.ts).
 
 ## Context lookup and fidelity
 

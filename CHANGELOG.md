@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.4
+
+- Clarify that the notifier is agent-neutral and consumes Herdr's generic status event.
+- Document installation and status checks for every Herdr 0.9.1 integration target.
+- Distinguish lifecycle-authority integrations from session-only integrations whose state still comes from screen detection.
+- No sender, config, or alert-format changes.
+
 ## 0.1.3
 
 - Compact alerts to status, workspace, pane, and source; retain names and stable workspace/pane IDs.

@@ -7,6 +7,15 @@ The live transport results below were obtained with `0.1.0`. Release `0.1.1`
 changes only naming, package-version metadata, and documentation; the sender
 and its tests are unchanged. It does not claim another live Telegram trial.
 
+## 0.1.4 documentation verification
+
+The notifier runtime is unchanged. The manifest still subscribes to the generic
+`pane.agent_status_changed` event and has no agent-name filter. Herdr 0.9.1's
+installed CLI help and first-party integration documentation were checked for
+the complete per-agent install target list and lifecycle-versus-session status
+authority model. Markdown links/fences and the unchanged behavioral suite were
+verified before publication.
+
 ## 0.1.3 compact-format validation
 
 All 16 behavioral subtests passed with the updated compact-format contract.
