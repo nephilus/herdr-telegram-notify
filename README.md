@@ -4,7 +4,7 @@ An agent-neutral, send-only [Herdr](https://herdr.dev/) plugin that sends a shor
 
 An independent community plugin, separate from the [Agent Telegram Notify example](https://github.com/ogulcancelik/herdr-plugin-examples/tree/main/agent-telegram-notify). This package provides outbound alerts only: no callback watcher, remote commands, or approval buttons. It is not an official Herdr plugin.
 
-Version `0.1.4` is experimental. It is not a stable or fully certified integration.
+Version `0.1.5` is experimental. It is not a stable or fully certified integration.
 Validation covered the real Herdr hook and three accepted Telegram API sends. Phone display and long-running reliability are not certified; see [validation evidence](docs/validation.md).
 
 **Want alerts while viewing the agent's tab?** Set `"notifyOnIdle": true` in your private JSON config. Herdr can report seen-pane completion as `idle` rather than `done`. This option forwards those events as “agent is idle,” including other idle events such as startup or acknowledgement of a finished pane. It defaults to `false`.
@@ -12,7 +12,7 @@ Validation covered the real Herdr hook and three accepted Telegram API sends. Ph
 ## What it does
 
 - Sends notifications for `done` and `blocked`, plus `idle` when `notifyOnIdle` is enabled.
-- Includes workspace and pane names/IDs and the configured source in a compact alert.
+- Includes workspace, tab, and pane names/IDs and the configured source in a compact alert.
 - Sends an explicit test message only when you invoke the `test` action.
 - Reads configuration from Herdr’s per-plugin config directory, outside this checkout.
 - Never polls Telegram for updates, accepts inbound commands, displays buttons, or sends agent transcripts.
@@ -28,18 +28,19 @@ Example with synthetic names:
 ```text
 🏁 omp finished
 Workspace: Project [w2]
+Tab: Notifications [w2:t7]
 Pane: Review changes [w2:p7]
 Source: My Herdr
 ```
 
 State icons: 🏁 finished (not verified success), ⚠️ needs attention, and ⏸️ idle.
-A manual test uses 🧪. The repeated toast-context line, separate tab row, and
-navigation footer are omitted; this is a concise status alert, not an exact
-copy of a custom toast.
+A manual test uses 🧪. The repeated toast-context line and navigation footer
+are omitted; this is a concise status alert, not an exact copy of a custom
+toast.
 
 Herdr's hierarchy is workspace → tab → pane(s). A tab can contain several
-split panes. With one pane per tab, they can look equivalent; these alerts
-identify the actual event pane and its workspace, not the tab container.
+split panes. The plugin resolves the event pane's tab rather than using the
+currently focused tab.
 
 ## Requirements
 
@@ -55,7 +56,7 @@ Herdr’s plugin commands are user-wide. A linked or installed plugin is availab
 Install the tagged release from GitHub and review Herdr’s interactive preview before accepting it:
 
 ```sh
-herdr plugin install nephilus/herdr-telegram-notify --ref v0.1.4
+herdr plugin install nephilus/herdr-telegram-notify --ref v0.1.5
 ```
 
 The plugin runs as ordinary user code. Read the manifest and source before accepting an install from any plugin author; see [Herdr’s plugin security guidance](https://herdr.dev/docs/plugins/#trust-and-security).
@@ -221,7 +222,7 @@ A disabled or missing config causes the plugin to skip metadata lookup and netwo
 There is no separate update command for a GitHub-managed plugin. Re-run the same install command with the desired release ref to refresh it:
 
 ```sh
-herdr plugin install nephilus/herdr-telegram-notify --ref v0.1.4
+herdr plugin install nephilus/herdr-telegram-notify --ref v0.1.5
 ```
 
 To remove the GitHub-managed installation, unregister it and remove its managed checkout with:

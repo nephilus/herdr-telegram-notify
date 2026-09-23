@@ -7,6 +7,13 @@ The live transport results below were obtained with `0.1.0`. Release `0.1.1`
 changes only naming, package-version metadata, and documentation; the sender
 and its tests are unchanged. It does not claim another live Telegram trial.
 
+## 0.1.5 tab-context validation
+
+The behavioral suite verifies workspace → event tab → event pane ordering,
+rejects focused-tab substitution, exercises matching event-context fallback,
+and keeps incomplete-context diagnostics. A real CLI smoke check used a local
+HTTP receiver only; no external Telegram message was sent.
+
 ## 0.1.4 documentation verification
 
 The notifier runtime is unchanged. The manifest still subscribes to the generic

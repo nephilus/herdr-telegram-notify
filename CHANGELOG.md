@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.5
+
+- Add the event tab's sanitized name and stable ID between the workspace and pane rows.
+- Resolve tab metadata from the event pane, never from an unrelated focused pane.
+- Preserve explicit incomplete-context diagnostics when tab metadata is unavailable.
+
 ## 0.1.4
 
 - Clarify that the notifier is agent-neutral and consumes Herdr's generic status event.

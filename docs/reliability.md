@@ -50,13 +50,14 @@ The source used for this OMP-specific behavior is pinned at [`065ef9d6a531c49fb8
 
 ## Context lookup and fidelity
 
-The plugin queries Herdr independently for workspace and pane context. It trusts event context only when the workspace ID and focused pane ID match the records it is using. It does not infer a pane name from an agent or tab name: pane naming prefers the actual pane label, then event or pane title, then the terminal title, and finally `(unnamed)`. It does not query tabs.
+The plugin queries Herdr independently for workspace, tab, and pane context. It trusts event context only when the workspace ID and focused pane ID match the records it is using. The event pane's `tab_id` selects the tab; the currently focused tab is never substituted. Pane naming prefers the actual pane label, then event or pane title, then the terminal title, and finally `(unnamed)`.
 
 The message can include:
 
 - a state icon and agent/status title;
 - the workspace name and stable ID;
-- the pane name and identifiers;
+- the event tab's name and stable ID;
+- the pane name and stable ID;
 - the configured source label.
 
 Names are sanitized plain text, with control and bidirectional-format characters removed, whitespace collapsed, and bounded lengths. The complete message is kept below Telegram’s normal message-size limit. Identifiers are preserved rather than replaced by display names.

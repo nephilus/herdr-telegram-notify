@@ -117,13 +117,20 @@ async function notification(data, env) {
   try { context = JSON.parse(env.HERDR_PLUGIN_CONTEXT_JSON ?? '{}'); } catch {}
   if (context?.workspace_id !== workspaceId || context?.focused_pane_id !== paneId) context = {};
 
-  const [workspaces, panes] = await Promise.all([
+  const [workspaces, panes, tabs] = await Promise.all([
     query(env, ['workspace', 'list'], 'workspaces'),
     query(env, ['pane', 'list', '--workspace', workspaceId], 'panes'),
+    query(env, ['tab', 'list', '--workspace', workspaceId], 'tabs'),
   ]);
   const workspace = workspaces?.find(item => item?.workspace_id === workspaceId);
   const pane = panes?.find(item => item?.pane_id === paneId && item?.workspace_id === workspaceId);
+  const candidateTabId = pane?.tab_id ?? context?.tab_id;
+  const tabId = typeof candidateTabId === 'string' &&
+    /^[A-Za-z0-9:_-]{1,80}$/.test(candidateTabId) ? candidateTabId : null;
+  const tab = tabs?.find(item => item?.tab_id === tabId && item?.workspace_id === workspaceId);
   const workspaceName = name(context?.workspace_label) || name(workspace?.label, '(unknown)');
+  const tabName = name(context?.tab_id === tabId ? context?.tab_label : undefined)
+    || name(tab?.label, '(unknown)');
   const paneName = name(pane?.label) || name(data.title) || name(pane?.title)
     || name(pane?.terminal_title_stripped, '(unnamed)');
   const agentName = name(data.display_agent) || name(data.agent, 'Agent');
@@ -135,9 +142,11 @@ async function notification(data, env) {
   const lines = [
     title,
     `Workspace: ${workspaceName} [${workspaceId}]`,
+    `Tab: ${tabName}${tabId ? ` [${tabId}]` : ''}`,
     `Pane: ${paneName} [${paneId}]`,
   ];
-  if (!workspace || !pane || workspaceName === '(unknown)' || paneName === '(unnamed)') {
+  if (!workspace || !pane || !tab || workspaceName === '(unknown)' ||
+      tabName === '(unknown)' || paneName === '(unnamed)') {
     lines.push('Context: incomplete; names may be unavailable.');
   }
   return lines.join('\n');
